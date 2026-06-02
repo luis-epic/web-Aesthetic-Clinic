@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/", "destination": "/preview-web/index.html" },
+    { "source": "/:path*", "destination": "/preview-web/:path*" }
+  ]
+}
