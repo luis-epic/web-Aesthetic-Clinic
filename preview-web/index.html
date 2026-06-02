@@ -41,6 +41,27 @@
 
 
 
+/* ── Estilos de Música de Espera Asistente ── */
+.ai-chat-music-btn {
+  background: none;
+  border: none;
+  color: rgba(0,0,0,0.35) !important;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: all 0.3s ease;
+  padding: 4px;
+  outline: none;
+  margin-right: 6px;
+}
+.ai-chat-music-btn:hover {
+  color: #977634 !important;
+  transform: scale(1.08) !important;
+}
+.ai-chat-music-btn.active {
+  color: #b08d4f !important;
+}
+
 /* ── Estilos de Voz Asistente AI ── */
 .ai-chat-volume-btn:hover {
   color: #977634 !important;
@@ -1285,7 +1306,14 @@ footer[data-astro-cid-sz7xmlte] div[data-astro-cid-sz7xmlte]:last-child {
         <h4>Asistente AI · Dra. Iratxe Díaz</h4>
         <span>Asistente de la Clínica · En línea</span>
       </div>
-            <button class="ai-chat-volume-btn" id="aiChatVolume" aria-label="Activar lectura de voz" style="background:none; border:none; color:rgba(0,0,0,0.35); cursor:pointer; display:grid; place-items:center; transition:all 0.3s; padding: 4px; outline:none; margin-right: 6px;">
+            <button class="ai-chat-music-btn" id="aiChatMusic" aria-label="Activar música de espera" style="background:none; border:none; color:rgba(0,0,0,0.35); cursor:pointer; display:grid; place-items:center; transition:all 0.3s; padding: 4px; outline:none; margin-right: 6px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:19px; height:19px;" class="music-icon">
+            <path d="M9 18V5l12-2v13"></path>
+            <circle cx="6" cy="18" r="3"></circle>
+            <circle cx="18" cy="16" r="3"></circle>
+          </svg>
+        </button>
+        <button class="ai-chat-volume-btn" id="aiChatVolume" aria-label="Activar lectura de voz" style="background:none; border:none; color:rgba(0,0,0,0.35); cursor:pointer; display:grid; place-items:center; transition:all 0.3s; padding: 4px; outline:none; margin-right: 6px;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:19px; height:19px;" class="vol-icon">
           <line x1="1" y1="1" x2="23" y2="23" class="vol-slash" style="transition: opacity 0.25s ease; stroke: currentColor;"></line>
           <path d="M9 9v6a3 3 0 0 0 3 3h1.586l4.707 4.707A1 1 0 0 0 20 22V4a1 1 0 0 0-1.707-.707L13.586 8H12a3 3 0 0 0-3 3z"></path>
@@ -1798,6 +1826,44 @@ Te recomendamos reservar tu cita con antelación para asegurar disponibilidad en
     const volBtn = document.getElementById('aiChatVolume');
     const chatInput = document.getElementById('aiChatInput');
 
+    // ── Configuración de Música de Espera Asistente ──
+    const musicBtn = document.getElementById('aiChatMusic');
+    const musicAudio = document.getElementById('waitingMusicAudio');
+    
+    if (musicBtn && musicAudio) {
+      let musicPlaying = localStorage.getItem('waitingMusicPlaying') === 'true';
+      musicAudio.volume = 0.25; // Muy suave de fondo
+      musicBtn.classList.toggle('active', musicPlaying);
+      
+      if (musicPlaying) {
+        musicAudio.play().then(() => {
+          musicBtn.setAttribute('aria-label', 'Desactivar música de espera');
+        }).catch(err => {
+          console.log("Música de espera - Autoplay bloqueado por el navegador.");
+          musicPlaying = false;
+          musicBtn.classList.remove('active');
+          localStorage.setItem('waitingMusicPlaying', 'false');
+        });
+      }
+      
+      musicBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        musicPlaying = !musicPlaying;
+        musicBtn.classList.toggle('active', musicPlaying);
+        localStorage.setItem('waitingMusicPlaying', musicPlaying ? 'true' : 'false');
+        
+        if (musicPlaying) {
+          musicBtn.setAttribute('aria-label', 'Desactivar música de espera');
+          musicAudio.play().catch(err => {
+            console.error("Error al reproducir música de espera:", err);
+          });
+        } else {
+          musicBtn.setAttribute('aria-label', 'Activar música de espera');
+          musicAudio.pause();
+        }
+      });
+    }
+
     if (!micBtn || !volBtn || !chatInput) {
       console.warn('Asistente AI - Elementos de voz no encontrados en el DOM.');
       return;
@@ -2084,4 +2150,7 @@ Te recomendamos reservar tu cita con antelación para asegurar disponibilidad en
   })();
 
 </script>
+<audio id="waitingMusicAudio" loop preload="auto">
+  <source src="/waiting_music.mp3" type="audio/mp3">
+</audio>
 </body> </html>
